@@ -7,7 +7,7 @@ drop table tipoproduto;
 drop table residuo;
 drop table produto;
 drop table pontos;
-drop table pagamentos;
+drop table pagamento;
 drop table locaisdescarte_usuario;
 drop table locaisdescarte;
 drop table formapagamento;
