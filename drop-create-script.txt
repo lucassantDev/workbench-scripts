@@ -1,0 +1,148 @@
+-- Criação do banco de dados Cashbakc Verde
+DROP DATABASE IF EXISTS Cashback_Verde;
+CREATE DATABASE Cashback_Verde DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE Cashback_Verde;
+
+-- Tabela usuario
+CREATE TABLE usuario (
+  CPF VARCHAR(14) NOT NULL,
+  nome VARCHAR(100) NOT NULL,
+  email VARCHAR(50) NOT NULL,
+  senha VARCHAR(100) NOT NULL,
+  telefone VARCHAR(13) NOT NULL,
+  PRIMARY KEY (CPF)
+) ENGINE=InnoDB;
+
+-- Tabela endereco
+CREATE TABLE endereco (
+  idEndereco INT AUTO_INCREMENT PRIMARY KEY,
+  CEP VARCHAR(9) NOT NULL,
+  bairro VARCHAR(45) NOT NULL,
+  rua VARCHAR(45) NOT NULL,
+  numeroResidencia INT NOT NULL,
+  complemento VARCHAR(45),
+  usuario_CPF CHAR(14) NOT NULL UNIQUE,
+  FOREIGN KEY (usuario_CPF) REFERENCES usuario(CPF)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- Tabela pontos
+CREATE TABLE pontos (
+  idpontos INT AUTO_INCREMENT PRIMARY KEY,
+  pontos VARCHAR(250) NOT NULL
+) ENGINE=InnoDB;
+
+-- Tabela locaisDescarte
+CREATE TABLE locaisDescarte (
+  CEP VARCHAR(9) NOT NULL,
+  bairro VARCHAR(45) NOT NULL,
+  horaAbertura TIME NOT NULL,
+  horaFechamento TIME NOT NULL,
+  rua VARCHAR(45) NOT NULL,
+  PRIMARY KEY (CEP)
+) ENGINE=InnoDB;
+
+-- Tabela tipoResiduo
+CREATE TABLE tipoResiduo (
+  idTipoResiduo INT AUTO_INCREMENT PRIMARY KEY,
+  codMaterial INT NOT NULL
+) ENGINE=InnoDB;
+
+-- Tabela residuo
+CREATE TABLE residuo (
+  idResiduo INT AUTO_INCREMENT PRIMARY KEY,
+  pesagem DECIMAL(7,2) ZEROFILL NOT NULL,
+  material VARCHAR(45) NOT NULL,
+  usuario_CPF CHAR(14) NOT NULL,
+  tipoResiduo_idTipoResiduo INT NOT NULL,
+  FOREIGN KEY (usuario_CPF) REFERENCES usuario(CPF)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (tipoResiduo_idTipoResiduo) REFERENCES tipoResiduo(idTipoResiduo)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- Tabela empresa
+CREATE TABLE empresa (
+  CNPJ VARCHAR(18) NOT NULL,
+  nomeEmpresa VARCHAR(45) NOT NULL,
+  numeroTelefone VARCHAR(13) NOT NULL,
+  email VARCHAR(45) NOT NULL,
+  PRIMARY KEY (CNPJ)
+) ENGINE=InnoDB;
+
+-- Tabela produto
+CREATE TABLE produto (
+  idProduto INT NOT NULL,
+  nomeProduto VARCHAR(60) NOT NULL,
+  valor DECIMAL(7,2) ZEROFILL NOT NULL,
+  quantidade INT NOT NULL,
+  empresa_CNPJ VARCHAR(14) NOT NULL,
+  PRIMARY KEY (idProduto, empresa_CNPJ),
+  FOREIGN KEY (empresa_CNPJ) REFERENCES empresa(CNPJ)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- Tabela tipoProduto
+CREATE TABLE tipoProduto (
+  idTipoProduto INT AUTO_INCREMENT PRIMARY KEY,
+  tipoProduto VARCHAR(50) NOT NULL,
+  produto_idProduto INT NOT NULL,
+  produto_empresa_CNPJ CHAR(14) NOT NULL,
+  FOREIGN KEY (produto_idProduto, produto_empresa_CNPJ)
+    REFERENCES produto(idProduto, empresa_CNPJ)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- Tabela pagamento
+CREATE TABLE pagamento (
+  idPagamento INT AUTO_INCREMENT PRIMARY KEY,
+  valorPago DECIMAL(5,2),
+  quantidadeParcela INT,
+  produto_idProduto INT NOT NULL,
+  produto_empresa_CNPJ CHAR(14) NOT NULL,
+  FOREIGN KEY (produto_idProduto, produto_empresa_CNPJ)
+    REFERENCES produto(idProduto, empresa_CNPJ)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- Tabela formaPagamento
+CREATE TABLE formaPagamento (
+  idFormaPagamento INT AUTO_INCREMENT PRIMARY KEY,
+  formaPagamento VARCHAR(45) NOT NULL,
+  pagamento_idPagamento INT NOT NULL,
+  FOREIGN KEY (pagamento_idPagamento)
+    REFERENCES pagamento(idPagamento)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- Tabela usuario_pontos
+CREATE TABLE usuario_pontos (
+  usuario_CPF VARCHAR(14) NOT NULL,
+  pontos_idpontos INT NOT NULL,
+  FOREIGN KEY (usuario_CPF) REFERENCES usuario(CPF)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (pontos_idpontos) REFERENCES pontos(idpontos)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- Tabela usuario_produto
+CREATE TABLE usuario_produto (
+  usuario_CPF VARCHAR(14) NOT NULL,
+  produto_idProduto INT NOT NULL,
+  produto_empresa_CNPJ CHAR(14) NOT NULL,
+  FOREIGN KEY (usuario_CPF) REFERENCES usuario(CPF)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (produto_idProduto, produto_empresa_CNPJ)
+    REFERENCES produto(idProduto, empresa_CNPJ)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- Tabela locaisDescarte_usuario
+CREATE TABLE locaisDescarte_usuario (
+  locaisDescarte_CEP VARCHAR(9) NOT NULL,
+  usuario_CPF CHAR(14) NOT NULL,
+  FOREIGN KEY (locaisDescarte_CEP) REFERENCES locaisDescarte(CEP)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (usuario_CPF) REFERENCES usuario(CPF)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB
