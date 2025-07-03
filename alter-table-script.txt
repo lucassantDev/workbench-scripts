@@ -7,8 +7,8 @@ alter table usuario rename column nome to nome_completo;
 -- mudando o tipo da coluna
 alter table produto modify column valor decimal(10,2);
 
--- removendo uma coluna
-alter table endereco drop column complemento;
+-- aumentando a quantidade de caracteres na coluna complemento
+alter table endereco modify complemento varchar(120);
 
 -- utilizando o modify para mudar o tamanho do varchar
 alter table empresa modify email VARCHAR(100);
