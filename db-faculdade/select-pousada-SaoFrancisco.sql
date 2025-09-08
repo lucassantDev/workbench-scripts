@@ -78,6 +78,36 @@ select dep.cpf 'CPF do Dependente', upper(dep.nome) as 'Dependente', date_format
 					and  timestampdiff(year, dep.dataNasc, now()) <= 6 and
 						dep.funcionario_cpf = func.cpf
 							order by dep.nome;
+
+# CPF, nome, idade, gênero, estdo civil, salario, cidade, telefones, email
+select upper(func.nome) 'Funcionário', func.CPF 'CPF',   
+	timestampdiff(year, func.dataNasc, now()) 'Idade', 
+		func.genero 'Gênero', func.estadoCivil 'Estado Civil', 
+			format(func.salario, 2, 'de_DE') 'Salário (R$)',
+					func.email 'E-mail',
+						ende.cidade 'Cidade' ,
+							group_concat(distinct tel.numero separator ', ') 'Telefone'
+							from funcionario func inner join endereco ende on ende.funcionario_CPF = func.CPF
+                            inner join telefone tel on tel.funcionario_cpf = func.cpf
+								group by func.cpf
+									order by func.nome;
+				
+                        
+
+# cpf, nome , data, gravidade e descrição
+select func.cpf 'CPF', func.nome 'Funcionário', date_format(oi.datahora, '%h:%i - %d/%m/%Y') 'Momento da Ocorrência', 
+	upper(oi.gravidade) 'Gravidade da Ocorrência', oi.descricao 'Descrição'
+	from OcorrenciaInterna oi 
+		inner join funcionario func on func.cpf = oi.funcionario_cpf;
+        
+
+# data, tipo, justificaiva, cpf, nome
+
+# coalesce -> mesmo proposito do replace
+
+select date_format(rp.datahora, '%h:%i - %d/%m/%Y') 'Data e Hora', upper(rp.tipoes) 'Entrada / Saída',
+	coalesce(rp.justificativa,'--') 'Justificativa', func.cpf 'CPF do Funcionário', upper(func.nome) 'Nome Funcionário'
+		from registroponto rp inner join funcionario func on rp.funcionario_cpf = func.cpf;
                 
 
 
