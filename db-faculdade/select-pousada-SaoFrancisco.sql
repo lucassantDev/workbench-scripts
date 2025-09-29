@@ -1,4 +1,6 @@
 -- SQL - DQL
+use pousasaofrancisco;
+-- SQL - DQL
 select * from funcionario;
 
 select cpf, nome, datanasc, genero, estadocivil, 
@@ -280,6 +282,198 @@ select func.nome "Funcionário", func.cpf "CPF",
         inner join departamento dep on trb.Departamento_idDepartamento = dep.idDepartamento
 			where trb.dataFim is null
 				order by func.nome;
+                
+update funcionario
+	set salario = 5000, fg = 1000
+		where cpf like "108.801.888-11";
+
+
+-- nome upper, cpf, cargahorario, salario, cargo, departamento, gerente 
+select upper(func.nome) "Funcionário",
+	replace(replace(func.cpf, ".", ""), "-", "") "CPF",
+    concat(func.cargaHoraria, "h") "Carga Horária",
+    concat("R$ ", format(func.salario, 2, 'de_DE')) "Salário",
+    crg.nome "Cargo",
+    dep.nome "Departamento",
+    grt.nome "Gerente"
+	from funcionario func
+		inner join trabalhar trb on trb.Funcionario_CPF = func.CPF
+        inner join cargo crg on crg.CBO = trb.Cargo_CBO
+        inner join departamento dep on dep.idDepartamento = trb.Departamento_idDepartamento
+        left join funcionario grt on grt.cpf = dep.Gerente_CPF
+			where trb.dataFim is null
+				order by func.nome;
+    
+select upper(func.nome) "Funcionário",
+	replace(replace(func.cpf, ".", ""), "-", "") "CPF",
+    concat(func.cargaHoraria, "h") "Carga Horária",
+    concat("R$ ", format(func.salario, 2, 'de_DE')) "Salário",
+    crg.nome "Cargo",
+    dep.nome "Departamento",
+    grt.nome "Gerente"
+	from funcionario func
+		inner join trabalhar trb on trb.Funcionario_CPF = func.CPF
+        inner join cargo crg on crg.CBO = trb.Cargo_CBO
+        inner join departamento dep on dep.idDepartamento = trb.Departamento_idDepartamento
+        left join funcionario grt on grt.cpf = dep.Gerente_CPF
+			where trb.dataFim is null and
+				func.salario >= avg(func.salario)
+				order by func.nome;
+
+select avg(salario) from funcionario;
+
+select upper(func.nome) "Funcionário",
+	replace(replace(func.cpf, ".", ""), "-", "") "CPF",
+    concat(func.cargaHoraria, "h") "Carga Horária",
+    concat("R$ ", format(func.salario, 2, 'de_DE')) "Salário",
+    crg.nome "Cargo",
+    dep.nome "Departamento",
+    grt.nome "Gerente"
+	from funcionario func
+		inner join trabalhar trb on trb.Funcionario_CPF = func.CPF
+        inner join cargo crg on crg.CBO = trb.Cargo_CBO
+        inner join departamento dep on dep.idDepartamento = trb.Departamento_idDepartamento
+        left join funcionario grt on grt.cpf = dep.Gerente_CPF
+			where trb.dataFim is null and
+				func.salario >= (select avg(salario) from funcionario)
+				order by func.nome;
+
+-- aux creche 180 para cada filho com menos de 7
+select func.nome "Funcionário", 
+	replace(replace(func.cpf, ".", ""), "-", "") "CPF",
+	concat(func.cargaHoraria, 'h') "Carga Horária",
+    concat("R$ ", format(func.salario, 2, 'de_DE')) "Salário",
+    count(dpt.CPF) "Auxílio Creche",
+    crg.nome "Cargo", dep.nome "Departamento"
+		from funcionario func
+        inner join trabalhar trb on trb.funcionario_cpf = func.cpf
+        inner join cargo crg on trb.cargo_cbo = crg.cbo
+        inner join departamento dep on trb.Departamento_idDepartamento = dep.idDepartamento
+        left join dependente dpt on dpt.Funcionario_CPF = func.cpf
+			where trb.dataFim is null
+				group by func.CPF
+					order by func.nome;
+
+-- Resolvendo com View
+select func.cpf "cpf", count(dep.CPF) "qtdFilho"
+	from funcionario func
+		left join dependente dep on dep.Funcionario_CPF = func.cpf
+			where timestampdiff(year, dep.dataNasc, now()) <= 6 
+				group by func.cpf;
+
+create view depAuxCreche as
+	select func.cpf "cpf", count(dep.CPF) "qtdFilho"
+		from funcionario func
+		left join dependente dep on dep.Funcionario_CPF = func.cpf
+			where timestampdiff(year, dep.dataNasc, now()) <= 6 
+				group by func.cpf;
+
+select * from depauxcreche;
+
+select func.nome "Funcionário", 
+	replace(replace(func.cpf, ".", ""), "-", "") "CPF",
+	concat(func.cargaHoraria, 'h') "Carga Horária",
+    concat("R$ ", format(func.salario, 2, 'de_DE')) "Salário",
+    concat("R$ ", format(coalesce(dac.qtdFilho, 0) * 180, 2, 'de_DE')) "Auxílio Creche",
+    crg.nome "Cargo", dep.nome "Departamento"
+		from funcionario func
+        inner join trabalhar trb on trb.funcionario_cpf = func.cpf
+        inner join cargo crg on trb.cargo_cbo = crg.cbo
+        inner join departamento dep on trb.Departamento_idDepartamento = dep.idDepartamento
+        left join depauxcreche dac on dac.cpf = func.cpf
+			where trb.dataFim is null
+				order by func.nome;
+
+create view RelatorioRHPag as
+	select func.nome "Funcionário", 
+	replace(replace(func.cpf, ".", ""), "-", "") "CPF",
+	concat(func.cargaHoraria, 'h') "Carga Horária",
+    concat("R$ ", format(func.salario, 2, 'de_DE')) "Salário",
+    concat("R$ ", format(coalesce(dac.qtdFilho, 0) * 180, 2, 'de_DE')) "Auxílio Creche",
+    crg.nome "Cargo", dep.nome "Departamento"
+		from funcionario func
+        inner join trabalhar trb on trb.funcionario_cpf = func.cpf
+        inner join cargo crg on trb.cargo_cbo = crg.cbo
+        inner join departamento dep on trb.Departamento_idDepartamento = dep.idDepartamento
+        left join depauxcreche dac on dac.cpf = func.cpf
+			where trb.dataFim is null
+				order by func.nome;
+                
+select * from relatoriorhpag;
+
+select cpf "CPF", upper(nome) as "Funcionário", 
+	date_format(datanasc, "%d/%m/%Y") "Data de Nascimento", 
+    genero "Gênero", upper(estadocivil) "Estado Civil",	
+    chavePix "PIX", carteiratrab "Carteira de Trabalho", 
+    concat(cargahoraria, "h") "Carga Horária", email "E-mail", 
+    concat("R$ ", format(salario, 2, 'de_DE')) "Salário"
+		from funcionario
+			where salario <= (select avg(salario) from funcionario)
+				order by nome;
+                
+select dep.nome "Departamento", 
+	concat("R$ ", format(sum(func.salario), 2, 'de_DE')) "Custo Salarial"
+	from departamento dep
+		left join trabalhar trb on trb.Departamento_idDepartamento = dep.idDepartamento
+        inner join funcionario func on func.CPF = trb.Funcionario_CPF
+			group by dep.idDepartamento
+				order by sum(func.salario) desc;
+
+select dep.nome "Departamento", 
+	concat("R$ ", format(sum(func.salario), 2, 'de_DE')) "Custo Salarial",
+    count(func.cpf) "Quantidade de Fucionário",
+    concat("R$ ", format(avg(func.salario), 2, 'de_DE')) "Média Salarial"
+	from departamento dep
+		left join trabalhar trb on trb.Departamento_idDepartamento = dep.idDepartamento
+        inner join funcionario func on func.CPF = trb.Funcionario_CPF
+			group by dep.idDepartamento
+				order by sum(func.salario) desc;
+
+select func.cpf from funcionario func
+	inner join trabalhar trb on trb.Funcionario_CPF = func.cpf
+	inner join cargo crg on crg.CBO = trb.Cargo_CBO
+    where crg.nome like "Segurança%" or crg.nome like "Auxiliar%";
+
+update funcionario, 
+	(select func.cpf from funcionario func
+	inner join trabalhar trb on trb.Funcionario_CPF = func.cpf
+	inner join cargo crg on crg.CBO = trb.Cargo_CBO
+    where crg.nome like "Segurança%" or crg.nome like "Auxiliar%") as crgFunc
+	set cargaHoraria = 36
+		where funcionario.cpf = crgFunc.cpf;
+
+-- 180 (<25), 280(25>=  and <35), 380 (35>=  and <45), 480 (45>=  and <55) depois 600
+select func.nome "Funcionário", 
+	replace(replace(func.cpf, '.', ''), '-', '') "CPF",
+    concat(func.cargaHoraria, 'h') "Carga Horária",
+    crg.nome "Cargo",  
+    case func.cargahoraria when 40 then concat("R$ ", 22*20)
+		when 36 then concat("R$ ", 22*32) end "Vale Alimentação",
+	case when timestampdiff(year, func.dataNasc, now()) < 25 then concat("R$ ", 180)  
+		when timestampdiff(year, func.dataNasc, now()) between 25 and 35 then concat("R$ ", 280) 
+		when timestampdiff(year, func.dataNasc, now()) between 35 and 45 then concat("R$ ", 380)
+        when timestampdiff(year, func.dataNasc, now()) between 45 and 55 then concat("R$ ", 480)
+        else concat("R$ ", 600)
+		end "Auxílio Saúde",
+	concat("R$ ", format(func.salario, 2, 'de_DE')) "Salário"
+	from funcionario func	
+		inner join trabalhar trb on trb.Funcionario_CPF = func.cpf
+		inner join cargo crg on crg.CBO = trb.Cargo_CBO
+			order by func.nome;
+
+select func.nome "Funcionário", 
+	replace(replace(func.cpf, '.', ''), '-', '') "CPF",
+	fer.dataInicio "DataInicio",
+    adddate(fer.dataInicio, interval fer.qtdDias day) "DataFim",
+    fer.qtdDias "Quantidade de Dias",
+    fer.anoRef "Ano Referência"    
+    from funcionario func
+	inner join ferias fer on fer.Funcionario_CPF = func.cpf
+		where substr(fer.dataInicio, 6, 2) like "06" or
+			substr(fer.dataInicio, 6, 2) like "07"
+			order by fer.dataInicio;
+
+
 
 
 
