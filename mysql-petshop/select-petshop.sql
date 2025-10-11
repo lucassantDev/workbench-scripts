@@ -1,7 +1,4 @@
 use petshop;
-
-use petshop;
-
 #  relatório 01  - ordenado por  data de  admissão deforma  decrescente
 	select empregado.nome 'Empregado', 
 		empregado.cpf 'CPF do Empregado',  
@@ -43,6 +40,45 @@ select departamento.nome 'Nome Departamento',
     group by departamento.nome;
 
 # relatório 04 - lista de empregados com qtd total de vendas já realizadas por cada um, além da soma do valor total das vendas + valor total da comissão
+select empregado.nome 'Nome do Empregado',
+	empregado.cpf 'CPF',
+		empregado.sexo 'Gênero',
+			concat('R$ ', format(empregado.salario, 2, 'de_DE')) 'Salário',
+				count(venda.valor) 'Quantidade de Vendas',
+					concat('R$ ', format(sum(venda.valor), 2, 'de_DE')) 'Total Vendido',
+						concat('R$ ', format(sum(venda.comissao), 2, 'de_DE')) 'Total de Comissão'
+    from empregado as empregado
+    left join venda as venda on venda.Empregado_cpf = empregado.cpf
+    group by
+		empregado.nome
+    order by 'Quantidade de Vendas';
 
-    
+
+# relatório 06 - lista de serviços mais realizados por pets
+
+	
+
+# relatório 07 -  lista das vendas já realizados para um Cliente
+#https://www.datacamp.com/pt/doc/mysql/mysql-date-format
+select date_format(venda.data, '%d/%m/%Y')'Data da venda',
+	concat('R$ ', format(venda.valor, 2, 'de_DE'))'Valor',
+		concat('R$ ', format(venda.desconto, 2, 'de_DE')) 'Desconto da Venda',
+			concat('R$ ', format(((venda.valor) - (venda.desconto)), 2, 'de_DE')) 'Valor Final',
+				empregado.nome 'Responsável Venda'
+from venda as venda
+left join empregado as empregado on venda.Empregado_cpf = empregado.cpf
+order by venda.data desc;
+
+# relatório 08 - 10 serviços mais vendidos, com qtd de vendas de cada serviço, soma total dos valores de serviços vendidos
+select servico.nome 'Nome do Serviço',
+	concat('R$ ',format(servico.valorVenda, 2, 'de_DE')) 'Valor',
+		concat('R$ ',format(servico.valorCusto, 2, 'de_DE')) 'Valor de Custo'
+from servico;
+
+#select * from produtos;
+
+
+
+
+
     
