@@ -71,11 +71,12 @@ order by venda.data desc;
 
 # relatório 08 - 10 serviços mais vendidos, com qtd de vendas de cada serviço, soma total dos valores de serviços vendidos
 select servico.nome 'Nome do Serviço',
-	concat('R$ ',format(servico.valorVenda, 2, 'de_DE')) 'Valor',
-		concat('R$ ',format(servico.valorCusto, 2, 'de_DE')) 'Valor de Custo'
-from servico;
-
-#select * from produtos;
+        count(itensservico.quantidade) 'Quantidade de Vendas',
+			concat('R$ ' ,format(((servico.valorVenda) * count(itensservico.quantidade)), 2, 'de_DE')) 'Total Vendido'
+from servico as servico
+left join itensservico on itensservico.Servico_idServico = servico.idServico 
+group by servico.nome;
+select * from servico;
 
 
 
