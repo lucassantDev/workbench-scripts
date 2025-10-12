@@ -26,8 +26,6 @@ select empregado.nome 'Empregado',
             where empregado.salario < 3360
             order by empregado.nome;
 
-# descobrinco a  média salarial dos empregado referente ao relatório 02
-select format(avg(empregado.salario), 2, 'de_DE') 'Média Salarial' from empregado;
 
 # relatório 03 - qtd total de empregados por departamento, junto com média de salário e média de comissão
 select departamento.nome 'Nome Departamento',
@@ -37,7 +35,8 @@ select departamento.nome 'Nome Departamento',
 				concat('R$ ', format(avg(empregado.comissao), 2, 'de_DE')) 'Média de Comissão'
 	from departamento as departamento
     left join empregado as empregado on empregado.Departamento_idDepartamento = departamento.idDepartamento
-    group by departamento.nome;
+    group by departamento.nome
+    order by departamento.nome;
 
 # relatório 04 - lista de empregados com qtd total de vendas já realizadas por cada um, além da soma do valor total das vendas + valor total da comissão
 select empregado.nome 'Nome do Empregado',
@@ -49,13 +48,24 @@ select empregado.nome 'Nome do Empregado',
 						concat('R$ ', format(sum(venda.comissao), 2, 'de_DE')) 'Total de Comissão'
     from empregado as empregado
     left join venda as venda on venda.Empregado_cpf = empregado.cpf
-    group by
-		empregado.nome
+    group by empregado.nome
     order by 'Quantidade de Vendas';
 
 
 # relatório 06 - lista de serviços mais realizados por pets
-
+select pet.nome 'Pet',
+	date_format(venda.data, '%d/%m/%Y') 'Data do Serviço',
+		servico.nome 'Serviço',
+			itensservico.quantidade 'Quantidade',
+				concat('R$' ,format(itensservico.valor, 2, 'de_DE')) 'Valor',
+					empregado.nome 'Empregado Responsável'
+	from itensservico
+    join pet on pet_idpet = itensservico.pet_idpet
+	join servico on servico.idservico = itensservico.servico_idservico
+    join venda on venda.idvenda = itensservico.venda_idvenda
+    join empregado on  empregado.cpf = itensservico.empregado_cpf
+	order by venda.data desc
+    ;
 	
 
 # relatório 07 -  lista das vendas já realizados para um Cliente
@@ -69,6 +79,7 @@ from venda as venda
 left join empregado as empregado on venda.Empregado_cpf = empregado.cpf
 order by venda.data desc;
 
+
 # relatório 08 - 10 serviços mais vendidos, com qtd de vendas de cada serviço, soma total dos valores de serviços vendidos
 select servico.nome 'Nome do Serviço',
         count(itensservico.quantidade) 'Quantidade de Vendas',
@@ -77,6 +88,40 @@ from servico as servico
 left join itensservico on itensservico.Servico_idServico = servico.idServico 
 group by servico.nome;
 select * from servico;
+
+
+# relatório 09 - lista de formas de pagamento mais utilizadas nas vendas, com qtd de vendas que cada forma de pag foi relacionada
+select f.tipo 'Tipo Forma Pagamento',
+    count(f.Venda_idVenda) 'Quantidade Vendas',
+		concat('R$ ', format(sum(f.valorPago), 2, 'de_DE')) 'Total Valor Vendido'
+from formapgvenda f
+group by f.tipo
+order by count(f.Venda_idVenda) desc;
+
+# relatório 10 - balanço das vendas
+select date_format(venda.data, '%d/%m/%Y') 'Data Venda',
+    count(venda.idVenda) 'Quantidade de Vendas',
+		concat('R$ ', format(sum(venda.valor), 2, 'de_DE')) 'Valor Total Venda'
+from venda 
+group by (venda.data)
+order by (venda.data) DESC;
+
+
+# relatório 11 - lista de produtos, informando fornecedor de cada produto
+	select
+    prod.nome 'Nome Produto',
+    format(prod.valorVenda, 2, 'de_DE') 'Valor Produto',
+    prod.marca'Categoria do Produto',
+    fornecedor.nome 'Nome Fornecedor',
+    fornecedor.email 'Email Fornecedor',
+    tel.numero 'Telefone Fornecedor'
+from produtos prod
+join itenscompra ic on ic.Produtos_idProduto = prod.idProduto
+join compras c on c.idCompra = ic.Compras_idCompra
+join fornecedor on fornecedor.cpf_cnpj = c.Fornecedor_cpf_cnpj
+left join telefone tel on tel.Fornecedor_cpf_cnpj = fornecedor.cpf_cnpj
+group by prod.idProduto, fornecedor.cpf_cnpj
+order by prod.nome;
 
 
 
