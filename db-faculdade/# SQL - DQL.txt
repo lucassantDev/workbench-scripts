@@ -1,0 +1,27 @@
+# SQL - DQL
+
+# executando select de forma inicial
+select * from  funcionario;
+
+# executando o select de forma mais filtrada
+# order by -> ordena a coluna de nomes e exibe de A a Z
+select CPF, nome, dataNasc, genero, estadoCivil,  email, carteiraTrab, cargaHoraria, salario chavePix from funcionario order by nome;
+
+# order by desc-> ordena a coluna de salarios e exibe de forma decrescente
+select CPF, nome, dataNasc, genero, estadoCivil,  email, carteiraTrab, cargaHoraria, salario chavePix from funcionario order by salario desc;
+
+# mudando a exibição dos nomes das colunas, dessa forma, ao rodar o comando select, o nome das colunas est
+select cpf "CPF", nome "Funcionario", dataNasc "Data de Nascimento", 
+	genero "Gênero", estadoCivil "Estado Civil",  email "E-mail", 
+		carteiraTrab "Carteira de Trabalho", cargaHoraria "Carga Horária", 
+			salario "Salário"from funcionario order by salario desc
+					;
+                    
+# mudando a exibição dos dados, deixando o nome do funcionario em caixa alta, mudar a data de nascimento para um formato padão, adicionar um 'H' para carga horária e adicionar o R$ e a remoção do 0 nos sálarios
+# upper(nome) para exibir o nome em caixa alta
+# date_format(dataNasc, "%d/%m/%Y") para exibir a data de uma forma mais convencional. OBS: use %y para mostrar os ultimos 2 número do ano ou %Y para mostrar o ano todo. ex.: com %y = 84 | com %Y = 1984
+select cpf "CPF", upper(nome) as "Funcionario", date_format(dataNasc, "%d/%m/%Y") "Data de Nascimento", 
+	genero "Gênero", estadoCivil "Estado Civil",  email "E-mail", 
+		carteiraTrab "Carteira de Trabalho", concat(cargaHoraria, "h") "Carga Horária", 
+			concat("R$", format(salario, 2, 'de_DE')) as 'Salário' from funcionario order by salario desc
+					;
